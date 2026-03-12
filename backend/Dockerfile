@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Enable caching of dependencies
 COPY package*.json ./
-RUN npm ci
+RUN npm install --production
 
 COPY . .
 
