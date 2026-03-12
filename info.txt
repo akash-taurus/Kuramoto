@@ -1,0 +1,206 @@
+# The Internet's Collective Heartbeat — A Real-Time Human Synchronization Experiment
+
+---
+
+## 🎯 The Concept
+
+A website where thousands of strangers worldwide **tap a button to a beat they feel inside their head** — no music playing, no metronome, nothing. Just you and your internal rhythm.
+
+The site aggregates all those taps in real time, finds **emergent synchronization patterns**, and visualizes whether humans across the globe naturally drift toward the same rhythm — or pure chaos.
+
+The deeper question it's actually answering: **Do humans have a shared internal clock?**
+
+---
+
+## Why This Is Insane
+
+- No AI. No ML. Just raw human data and math.
+- The visualization alone will be hypnotic and shareable
+- It's a legitimate citizen science experiment — chronobiologists actually study this
+- It could go viral purely because the question is irresistible ("tap your natural rhythm and see if you match Tokyo right now")
+- The data you collect is genuinely novel and publishable
+- It gets *more interesting* the more people use it — network effects baked into the concept
+
+---
+
+## 🧠 The Science Behind It
+
+This isn't arbitrary. It's rooted in real phenomena:
+
+**Entrainment** — humans unconsciously synchronize rhythms with each other and their environment. Fireflies do it. Pendulum clocks on the same wall do it. Audiences clapping do it.
+
+**Spontaneous tempo** — research shows most humans, when asked to tap comfortably, gravitate toward **600ms intervals (~100 BPM)**. But does this vary by timezone? Age? Time of day? You're about to find out.
+
+**Circadian rhythm influence** — your internal clock shifts your natural tempo throughout the day. Morning vs midnight tapping might be measurably different.
+
+---
+
+## 🗺️ Full Feature Breakdown
+
+### Core Loop
+1. User lands on the site — minimal UI, just a big pulsing circle
+2. They tap it repeatedly for 10–15 seconds
+3. The site calculates their **personal BPM** from tap intervals
+4. Their tap gets added to the global stream instantly
+5. They see where they fall on the global distribution — live
+
+### The Visualizations (the real product)
+
+**Global Pulse Map**
+- World map with dots flickering at each user's rhythm
+- Regions that are "in sync" glow brighter
+- Watch Europe wake up and shift the global average every morning
+
+**The Rhythm River**
+- A horizontal flowing stream where each user is a particle
+- Particles that share a similar BPM naturally cluster together
+- Clusters that form organically represent emergent synchronization
+
+**Tempo Heatmap by Time**
+- Rolling 24hr heatmap showing BPM distribution over time
+- Does the world speed up during work hours? Slow down at 3am?
+
+**The Sync-o-Meter**
+- A single live metric: what % of current tappers are within ±5 BPM of each other
+- If it hits above 60% — the site "resonates" and the whole UI pulses together
+
+---
+
+## 🔧 Technical Architecture
+
+### Frontend
+- Vanilla JS or `Svelte` — needs to be extremely lightweight and fast
+- Tap detection with precise timestamps using `performance.now()` (not `Date.now()` — too imprecise)
+- BPM calculated client-side before sending to server
+- `Canvas API` or `Three.js` for visualizations
+- `WebSockets` for real-time global stream
+
+```javascript
+// Tap handler — precision matters here
+const taps = [];
+
+button.addEventListener('pointerdown', () => {
+  taps.push(performance.now());
+
+  if (taps.length > 1) {
+    const intervals = taps.slice(1).map((t, i) => t - taps[i]);
+    const avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
+    const bpm = 60000 / avgInterval;
+    updateLocalDisplay(bpm);
+  }
+
+  if (taps.length >= 8) sendToServer(bpm);
+});
+```
+
+### Backend
+- `Node.js` + `WebSocket` server (ws library) for real-time broadcasting
+- `Redis` for live data — fast pub/sub for broadcasting taps globally
+- `PostgreSQL` for historical data storage
+- `Express` for REST endpoints (leaderboards, statistics, exports)
+
+### Data You Store Per Session
+```json
+{
+  "session_id": "uuid",
+  "bpm": 97.3,
+  "tap_intervals": [618, 601, 623, 609],
+  "timestamp": "2025-03-04T14:22:00Z",
+  "timezone": "Asia/Tokyo",
+  "country": "JP",
+  "local_hour": 23,
+  "device": "mobile"
+}
+```
+
+### Real-Time Pipeline
+```
+User taps → Client calculates BPM → WebSocket to server
+→ Redis pub/sub → broadcast to all connected clients
+→ PostgreSQL write (async, non-blocking)
+→ All clients update visualization
+```
+
+---
+
+## 📊 The Stats Engine
+
+This is where it gets nerdy. Run these continuously on the live data stream:
+
+**Circular Statistics** — BPM is cyclic (90 BPM and 180 BPM are related), so you need circular mean, not regular mean. Use the **von Mises distribution**.
+
+**Kuramoto Order Parameter** — a real physics metric (r value between 0–1) that measures how synchronized a group of oscillators is. If your site's r value spikes, something genuinely interesting is happening.
+
+**Cross-timezone correlation** — are people in similar latitudes more synced? Does DST in Europe cause a measurable shift?
+
+**Tap jitter analysis** — are people who tap more consistently (low variance) more likely to match the global average? What does high jitter mean psychologically?
+
+---
+
+## 🎮 Engagement Hooks
+
+**The Sync Challenge**
+Every hour, a "global target BPM" is generated from the current average. Users try to match it. Those within ±2 BPM join a live "choir" visualization.
+
+**Rhythm Fingerprint**
+After tapping, you get a unique visual — a waveform card generated from your specific tap intervals. Shareable. Looks like a soundwave but it's entirely yours.
+
+**The Leaderboard Nobody Expected**
+Not fastest or slowest — most consistent. The person with lowest tap variance over 20 taps is the "most metronomic human alive" right now.
+
+**Ghost Mode**
+After you tap, your rhythm ghost stays on the visualization for 60 seconds as other people tap. Watch your ghost drift in or out of sync with newcomers in real time.
+
+---
+
+## 🌍 The Experiment Layer
+
+Build a public-facing research dashboard that anyone can explore:
+
+- **Does BPM correlate with time of day?** (Plot it — it almost certainly does)
+- **Mobile vs desktop tappers** — phones introduce different latency, but do mobile users have different natural rhythms?
+- **Weekday vs weekend** — are people more frantic on Monday mornings?
+- **Global events** — did the world tap faster during the World Cup final? Log major events and overlay them on the timeline.
+
+Make all data downloadable as CSV. Academics will use it. It will get cited. That's your clout.
+
+---
+
+## 📦 Tech Stack Summary
+
+```
+Frontend          → Svelte + Canvas API / Three.js
+Tap Precision     → performance.now()
+Real-Time         → WebSockets (ws) + Redis Pub/Sub
+Backend           → Node.js + Express
+Database          → PostgreSQL + Redis
+Stats             → Custom JS math (circular stats, Kuramoto)
+Geo/Timezone      → ipapi.co (free tier) or browser Intl API
+Deployment        → Railway or Fly.io
+CDN               → Cloudflare (it will get traffic spikes)
+```
+
+---
+
+## ⏱️ Timeline
+
+| Phase | What | Time |
+|---|---|---|
+| 1 | Tap detection + BPM engine | 3 days |
+| 2 | WebSocket real-time pipeline | 4 days |
+| 3 | Core visualization (globe + river) | 1 week |
+| 4 | Stats engine | 4 days |
+| 5 | Engagement features (fingerprint, leaderboard) | 5 days |
+| 6 | Research dashboard | 3 days |
+| 7 | Load testing + deployment | 3 days |
+| **Total** | | **~5 weeks** |
+
+---
+
+## 💡 Why This Project Is Secretly Brilliant
+
+It has **zero AI**, but it will teach you more real engineering than most AI projects — WebSockets at scale, real-time data pipelines, circular statistics, browser timing APIs, distributed pub/sub, and visualization engineering.
+
+The research angle gives you something to write about. The virality angle means people will actually use it. And the core question — *are humans secretly synchronized?* — is the kind of thing that keeps people on the site for 20 minutes staring at a pulsing globe at 2am.
+
+**That's the mark of a great project.**
