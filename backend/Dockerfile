@@ -2,14 +2,11 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Enable caching of dependencies
-COPY package*.json ./
-RUN npm install --production
+COPY package.json ./
+COPY package-lock.json ./
+RUN npm install
 
 COPY . .
-
-# Run as non-root user for security best practice
-USER node
 
 EXPOSE 8080
 
