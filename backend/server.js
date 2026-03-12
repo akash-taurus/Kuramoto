@@ -4,7 +4,7 @@ const http = require('http');
 const WebSocket = require('ws');
 const { Pool } = require('pg');
 const Redis = require('ioredis');
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 
 require('dotenv').config();
 
@@ -244,7 +244,7 @@ if (useRedis && subClient) {
 wss.on('connection', (ws) => {
   activeConnections++;
   totalSessionsEver++;
-  ws.sessionId = uuidv4();
+  ws.sessionId = crypto.randomUUID();
 
   sessionData[ws.sessionId] = {
     bpms: [],
